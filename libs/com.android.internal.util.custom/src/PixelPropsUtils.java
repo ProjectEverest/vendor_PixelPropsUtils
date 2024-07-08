@@ -68,8 +68,8 @@ public class PixelPropsUtils {
             SystemProperties.get("ro.product.model", Build.MODEL);
     private static final Boolean sDeviceIsPixel =
             SystemProperties.get("ro.product.manufacturer", "").toLowerCase().contains("google");
-    private static final Boolean sForceSpoofGmsToPixel =
-            SystemProperties.getBoolean("persist.sys.pihooks.force.spoof.gms.pixel", false);
+    private static final Boolean sForceSpoofGmsProcess =
+            SystemProperties.getBoolean("persist.sys.pihooks.force.spoof.gms.process", false);
     private static final String sNetflixModel =
             SystemProperties.get("persist.sys.pihooks.netflix_model", "");
 
@@ -89,6 +89,12 @@ public class PixelPropsUtils {
         propsToChangeGeneric.put("TYPE", "user");
         propsToChangeGeneric.put("TAGS", "release-keys");
     }
+
+    private static final Map<String, Object> propsToChangeDevice =
+            createGoogleSpoofProps(
+                Build.MODEL,
+                Build.FINGERPRINT
+            );
 
     private static final Map<String, Object> propsToChangePixelXL =
             createGoogleSpoofProps(
@@ -361,9 +367,12 @@ public class PixelPropsUtils {
         }
 
         Map<String, Object> propsToChange = new HashMap<>();
-        if (gmsProcessToChangePixel5a.contains(processName)
-            && (!sDeviceIsPixel || sForceSpoofGmsToPixel)) {
-            propsToChange = propsToChangePixel5a;
+        if (gmsProcessToChangePixel5a.contains(processName)) {
+            if (!sDeviceIsPixel) {
+                propsToChange = propsToChangePixel5a;
+            } else if (sForceSpoofGmsProcess) {
+                propsToChange = propsToChangeDevice;
+            }
         } else if (packagesToChangeRecentPixel.contains(processName)) {
             propsToChange = propsToChangeRecentPixel;
         } else if (packagesToChangeRecentPixel.contains(packageName)) {
